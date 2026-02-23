@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "523690716848",
+    "project_id": "eduhabit-3ce86",
+    "storage_bucket": "eduhabit-3ce86.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523690716848:android:9f941a8873691f251f1575",
+        "android_client_info": {
+          "package_name": "com.kushal.eduhabit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB394ZXO7zh7jxSRsajarPn_SzJLwIBTDA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
