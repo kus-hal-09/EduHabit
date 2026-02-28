@@ -1,18 +1,17 @@
 package com.kushal.eduhabit;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import com.kushal.eduhabit.databinding.ActivityStudentDashboardBinding;
 
 public class StudentDashboardActivity extends AppCompatActivity {
 
     private ActivityStudentDashboardBinding binding;
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
+    private Fragment homeFragment, tasksFragment, coursesFragment, analyticsFragment, profileFragment;
+    private Fragment activeFragment;
+    private final FragmentManager fm = getSupportFragmentManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,65 +19,64 @@ public class StudentDashboardActivity extends AppCompatActivity {
         binding = ActivityStudentDashboardBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
+        initFragments();
 
-        // Dashboard Cards logic
-        binding.grammarCard.setOnClickListener(v -> startActivity(new Intent(this, GrammarPracticeActivity.class)));
-        binding.vocabularyCard.setOnClickListener(v -> startActivity(new Intent(this, VocabularyPracticeActivity.class)));
-        binding.speakingCard.setOnClickListener(v -> startActivity(new Intent(this, SpeakingPracticeActivity.class)));
-        binding.assignmentsCard.setOnClickListener(v -> startActivity(new Intent(this, AssignmentListActivity.class)));
-
-        // BOTTOM NAVIGATION LOGIC
-        binding.bottomNavigation.setSelectedItemId(R.id.nav_home);
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                return true;
-            } else if (itemId == R.id.nav_learn) {
-                startActivity(new Intent(this, GrammarPracticeActivity.class));
-                return true;
-            } else if (itemId == R.id.nav_speak) {
-                startActivity(new Intent(this, SpeakingPracticeActivity.class));
+                switchFragment(homeFragment);
                 return true;
             } else if (itemId == R.id.nav_tasks) {
-                startActivity(new Intent(this, AssignmentListActivity.class));
+                switchFragment(tasksFragment);
+                return true;
+            } else if (itemId == R.id.nav_courses) {
+                switchFragment(coursesFragment);
+                return true;
+            } else if (itemId == R.id.nav_analytics) {
+                switchFragment(analyticsFragment);
                 return true;
             } else if (itemId == R.id.nav_profile) {
-                startActivity(new Intent(this, ProfileActivity.class));
+                switchFragment(profileFragment);
                 return true;
             }
             return false;
         });
-
-        resetToRealData();
-        fetchUserData();
-        fetchAssignmentCount();
     }
 
-    private void resetToRealData() {
-        binding.welcomeText.setText("Loading...");
-        binding.streakValue.setText("0 Days 🔥");
-        binding.tvAssignmentsPending.setText("0 pending");
+    private void initFragments() {
+        homeFragment = new HomeFragment();
+        tasksFragment = new TasksFragment();
+        coursesFragment = new CoursesFragment();
+        analyticsFragment = new AnalyticsFragment();
+        profileFragment = new ProfileFragment();
+
+        activeFragment = homeFragment;
+
+        // Initialize all fragments but hide others to preserve state
+        fm.beginTransaction().add(R.id.fragment_container, profileFragment, "5").hide(profileFragment).commit();
+        fm.beginTransaction().add(R.id.fragment_container, analyticsFragment, "4").hide(analyticsFragment).commit();
+        fm.beginTransaction().add(R.id.fragment_container, coursesFragment, "3").hide(coursesFragment).commit();
+        fm.beginTransaction().add(R.id.fragment_container, tasksFragment, "2").hide(tasksFragment).commit();
+        fm.beginTransaction().add(R.id.fragment_container, homeFragment, "1").commit();
     }
 
-    private void fetchUserData() {
-        if (mAuth.getCurrentUser() == null) return;
-        String userId = mAuth.getCurrentUser().getUid();
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    String name = documentSnapshot.getString("name");
-                    binding.welcomeText.setText("Hello, " + name + "! 👋");
-                }
-            });
+    private void switchFragment(Fragment fragment) {
+        if (fragment != activeFragment) {
+            fm.beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                .hide(activeFragment)
+                .show(fragment)
+                .commit();
+            activeFragment = fragment;
+        }
     }
 
-    private void fetchAssignmentCount() {
-        db.collection("assignments").get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                int count = queryDocumentSnapshots.size();
-                binding.tvAssignmentsPending.setText(count + " pending");
-            });
+    @Override
+    public void onBackPressed() {
+        if (activeFragment != homeFragment) {
+            binding.bottomNavigation.setSelectedItemId(R.id.nav_home);
+        } else {
+            super.onBackPressed();
+        }
     }
 }

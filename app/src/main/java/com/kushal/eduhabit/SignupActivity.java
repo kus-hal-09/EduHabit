@@ -65,6 +65,16 @@ public class SignupActivity extends AppCompatActivity {
         user.put("name", name);
         user.put("email", email);
         user.put("role", role.toLowerCase());
+        
+        // Initialize real data fields for Student
+        if ("student".equalsIgnoreCase(role)) {
+            user.put("xp", 0);
+            user.put("level", 1);
+            user.put("tasksDone", 0);
+            user.put("streak", 0);
+            user.put("grammarProgress", 0);
+            user.put("vocabProgress", 0);
+        }
 
         db.collection("users").document(userId)
                 .set(user)
