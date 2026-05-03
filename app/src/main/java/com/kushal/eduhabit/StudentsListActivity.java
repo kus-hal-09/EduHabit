@@ -3,9 +3,11 @@ package com.kushal.eduhabit;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.kushal.eduhabit.databinding.ActivityStudentsListBinding;
 import com.kushal.eduhabit.databinding.ItemStudentBinding;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ public class StudentsListActivity extends AppCompatActivity {
 
     private ActivityStudentsListBinding binding;
     private FirebaseFirestore db;
+    private SessionManager session;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,10 +26,14 @@ public class StudentsListActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         db = FirebaseFirestore.getInstance();
+        session = new SessionManager(this);
 
         binding.backBtn.setOnClickListener(v -> finish());
+        setupBottomNav();
+        loadStudentsRealTime();
+    }
 
-        // --- BOTTOM NAVIGATION LOGIC ---
+    private void setupBottomNav() {
         binding.teacherBottomNavigation.setSelectedItemId(R.id.nav_teacher_students);
         binding.teacherBottomNavigation.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -51,26 +58,49 @@ public class StudentsListActivity extends AppCompatActivity {
             }
             return false;
         });
-
-        fetchStudents();
     }
 
-    private void fetchStudents() {
-        db.collection("users").whereEqualTo("role", "student").get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    binding.totalStudentsCount.setText(String.valueOf(queryDocumentSnapshots.size()));
-                    
-                    if (queryDocumentSnapshots.isEmpty()) {
-                        binding.emptyStateText.setVisibility(View.VISIBLE);
-                        binding.studentsContainer.removeAllViews();
-                    } else {
-                        binding.emptyStateText.setVisibility(View.GONE);
-                        binding.studentsContainer.removeAllViews();
-                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                            fetchStudentStatsAndAddView(doc);
-                        }
+    private void loadStudentsRealTime() {
+        String teacherCourse = session.getCourse();
+        String teacherSemester = session.getSemester();
+        String currentUserId = session.getUid();
+        
+        binding.tvCourseLabel.setText(teacherCourse + " " + teacherSemester + " Students");
+
+        // STRICT FILTER: role must be "student", and semester/course must match the teacher
+        db.collection("users")
+                .whereEqualTo("role", "student")
+                .whereEqualTo("course", teacherCourse)
+                .whereEqualTo("semester", teacherSemester)
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                    calculateClassStats();
+
+                    if (snapshots != null) {
+                        // Filter out the current user just in case they have a student role accidentally
+                        List<DocumentSnapshot> filteredDocs = new ArrayList<>();
+                        for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                            if (!doc.getId().equals(currentUserId)) {
+                                filteredDocs.add(doc);
+                            }
+                        }
+
+                        binding.totalStudentsCount.setText(String.valueOf(filteredDocs.size()));
+                        
+                        if (filteredDocs.isEmpty()) {
+                            binding.emptyStateText.setVisibility(View.VISIBLE);
+                            binding.studentsContainer.removeAllViews();
+                        } else {
+                            binding.emptyStateText.setVisibility(View.GONE);
+                            binding.studentsContainer.removeAllViews();
+                            for (DocumentSnapshot doc : filteredDocs) {
+                                fetchStudentStatsAndAddView(doc);
+                            }
+                        }
+                        calculateClassStats(teacherCourse, teacherSemester);
+                    }
                 });
     }
 
@@ -81,7 +111,10 @@ public class StudentsListActivity extends AppCompatActivity {
         itemBinding.studentName.setText(studentDoc.getString("name"));
         itemBinding.studentEmail.setText(studentDoc.getString("email"));
 
-        // Fetch submissions to calculate real stats
+        // Set status and level badges
+        itemBinding.statusBadge.setText("Active");
+        itemBinding.levelBadge.setText("New");
+
         db.collection("submissions")
                 .whereEqualTo("studentId", studentId)
                 .get()
@@ -94,13 +127,10 @@ public class StudentsListActivity extends AppCompatActivity {
                         if ("graded".equals(doc.getString("status"))) {
                             String gradeStr = doc.getString("grade");
                             try {
-                                // Try to extract numeric value from grade (e.g., "90%" -> 90)
                                 int grade = Integer.parseInt(gradeStr.replaceAll("[^0-9]", ""));
                                 totalGrade += grade;
                                 gradedCount++;
-                            } catch (Exception e) {
-                                // Ignore non-numeric grades for calculation
-                            }
+                            } catch (Exception ignored) {}
                         }
                     }
 
@@ -108,31 +138,36 @@ public class StudentsListActivity extends AppCompatActivity {
                     if (gradedCount > 0) {
                         int avgGrade = totalGrade / gradedCount;
                         itemBinding.avgGradeText.setText(avgGrade + "%");
-                        itemBinding.gradeLevel.setText(avgGrade >= 90 ? "Excellent" : (avgGrade >= 75 ? "Good" : "Fair"));
                     } else {
                         itemBinding.avgGradeText.setText("0%");
-                        itemBinding.gradeLevel.setText("New");
                     }
-                    
-                    // Streak logic (simplified for now)
-                    itemBinding.streakText.setText("0"); 
+                    itemBinding.streakText.setText(String.valueOf(studentDoc.getLong("streak") != null ? studentDoc.getLong("streak") : 0));
                 });
 
         binding.studentsContainer.addView(itemBinding.getRoot());
     }
 
-    private void calculateClassStats() {
-        db.collection("submissions").whereEqualTo("status", "graded").get()
+    private void calculateClassStats(String course, String semester) {
+        db.collection("submissions")
+                .whereEqualTo("course", course)
+                .whereEqualTo("semester", semester)
+                .whereEqualTo("status", "graded")
+                .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (!queryDocumentSnapshots.isEmpty()) {
                         int totalGrade = 0;
                         for (DocumentSnapshot doc : queryDocumentSnapshots) {
                             try {
-                                int grade = Integer.parseInt(doc.getString("grade").replaceAll("[^0-9]", ""));
-                                totalGrade += grade;
+                                String gradeStr = doc.getString("grade");
+                                if (gradeStr != null) {
+                                    int grade = Integer.parseInt(gradeStr.replaceAll("[^0-9]", ""));
+                                    totalGrade += grade;
+                                }
                             } catch (Exception ignored) {}
                         }
                         binding.avgGradeText.setText((totalGrade / queryDocumentSnapshots.size()) + "%");
+                    } else {
+                        binding.avgGradeText.setText("0%");
                     }
                 });
     }

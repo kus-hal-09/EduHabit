@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    app:cardBackgroundColor="#FFFFFF"
-    app:cardCornerRadius="16dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="24dp"
     app:cardElevation="2dp"
     app:strokeWidth="0dp">
 
@@ -19,57 +20,89 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/tv_title"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Assignment Title"
-                android:textColor="#111827"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/tv_status"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Chapter 1: Basics"
+                    android:textColor="#1E293B"
+                    android:textSize="18sp"
+                    android:fontFamily="sans-serif-black" />
+
+                <TextView
+                    android:id="@+id/tv_student_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="kushal@gmail.com"
+                    android:textColor="#64748B"
+                    android:textSize="13sp"
+                    android:fontFamily="sans-serif-medium" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tv_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:background="#FEF3C7"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="4dp"
-                android:text="Pending"
-                android:textColor="#D97706"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_centerVertical="true"
+                android:background="@drawable/demo_badge_bg"
+                android:backgroundTint="#F0FDF4"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp"
+                android:text="submitted"
+                android:textColor="#16A34A"
+                android:textSize="10sp"
+                android:fontFamily="sans-serif-black"
+                android:textAllCaps="true"
+                android:letterSpacing="0.05" />
         </RelativeLayout>
 
-        <TextView
-            android:id="@+id/tv_student_email"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="student@gmail.com"
-            android:textColor="#6B7280"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/tv_grade"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Grade: Not Graded"
-            android:textColor="#4F46E5"
-            android:textStyle="bold"
-            android:visibility="gone" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_action"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="1dp"
             android:layout_marginTop="16dp"
-            android:backgroundTint="#4F46E5"
-            android:text="Review Submission"
-            android:textAllCaps="false"
-            android:textStyle="bold"
-            app:cornerRadius="12dp" />
+            android:background="#F1F5F9" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tv_grade"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Grade: 80%"
+                android:textColor="#6366F1"
+                android:textSize="15sp"
+                android:fontFamily="sans-serif-bold"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_action"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#6366F1"
+                android:text="Review"
+                android:textAllCaps="false"
+                android:textSize="14sp"
+                android:fontFamily="sans-serif-bold"
+                app:cornerRadius="12dp"
+                app:icon="@drawable/ic_edit"
+                app:iconSize="16dp" />
+        </LinearLayout>
+
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

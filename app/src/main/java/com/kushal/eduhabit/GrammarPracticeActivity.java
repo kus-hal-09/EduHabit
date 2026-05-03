@@ -1,7 +1,12 @@
 package com.kushal.eduhabit;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.RadioButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.tabs.TabLayout;
@@ -19,6 +24,7 @@ public class GrammarPracticeActivity extends AppCompatActivity {
 
     private int currentQuestionIndex = 0;
     private int score = 0;
+    private boolean isAnswered = false;
 
     private String[] questions = {
             "She is coming to the party, _______?",
@@ -36,7 +42,7 @@ public class GrammarPracticeActivity extends AppCompatActivity {
             {"are", "is", "am", "will"}
     };
 
-    private int[] correctAnswers = {0, 0, 0, 0, 0}; // Indexes of correct options
+    private int[] correctAnswers = {0, 0, 0, 0, 0}; 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +52,10 @@ public class GrammarPracticeActivity extends AppCompatActivity {
 
         binding.backBtn.setOnClickListener(v -> finish());
 
-        // Initialize Tab Views
         practiceBinding = FragmentGrammarPracticeBinding.inflate(getLayoutInflater());
         theoryBinding = FragmentGrammarTheoryBinding.inflate(getLayoutInflater());
         progressBinding = FragmentGrammarProgressBinding.inflate(getLayoutInflater());
 
-        // Default tab
         showPracticeTab();
 
         binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -88,47 +92,95 @@ public class GrammarPracticeActivity extends AppCompatActivity {
     }
 
     private void loadQuestion() {
+        isAnswered = false;
+        practiceBinding.checkAnswerBtn.setText("Check Answer");
+        
         if (currentQuestionIndex < questions.length) {
             practiceBinding.questionText.setText(questions[currentQuestionIndex]);
+            
+            resetOptionStyles();
+            
             practiceBinding.option1.setText(options[currentQuestionIndex][0]);
             practiceBinding.option2.setText(options[currentQuestionIndex][1]);
             practiceBinding.option3.setText(options[currentQuestionIndex][2]);
             practiceBinding.option4.setText(options[currentQuestionIndex][3]);
             practiceBinding.optionsGroup.clearCheck();
             
+            // Enable options
+            for (int i = 0; i < practiceBinding.optionsGroup.getChildCount(); i++) {
+                practiceBinding.optionsGroup.getChildAt(i).setEnabled(true);
+            }
+
             binding.progressLabel.setText(currentQuestionIndex + " / " + questions.length);
             binding.progressBar.setProgress((currentQuestionIndex * 100) / questions.length);
+            
+            // Animation
+            Animation slideIn = AnimationUtils.loadAnimation(this, android.R.anim.slide_in_left);
+            practiceBinding.getRoot().startAnimation(slideIn);
+            
         } else {
-            Toast.makeText(this, "Practice Completed! Score: " + score + "/5", Toast.LENGTH_LONG).show();
-            updateProgressUI();
+            Toast.makeText(this, "Practice Completed!", Toast.LENGTH_SHORT).show();
             showProgressTab();
         }
     }
 
+    private void resetOptionStyles() {
+        practiceBinding.option1.setBackgroundResource(R.drawable.option_bg_selector);
+        practiceBinding.option2.setBackgroundResource(R.drawable.option_bg_selector);
+        practiceBinding.option3.setBackgroundResource(R.drawable.option_bg_selector);
+        practiceBinding.option4.setBackgroundResource(R.drawable.option_bg_selector);
+    }
+
     private void setupPracticeLogic() {
         practiceBinding.checkAnswerBtn.setOnClickListener(v -> {
+            if (isAnswered) {
+                currentQuestionIndex++;
+                loadQuestion();
+                return;
+            }
+
             int checkedId = practiceBinding.optionsGroup.getCheckedRadioButtonId();
             if (checkedId == -1) {
                 Toast.makeText(this, "Please select an answer", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            isAnswered = true;
             int selectedIndex = -1;
+            RadioButton selectedOption = findViewById(checkedId);
+            
             if (checkedId == practiceBinding.option1.getId()) selectedIndex = 0;
             else if (checkedId == practiceBinding.option2.getId()) selectedIndex = 1;
             else if (checkedId == practiceBinding.option3.getId()) selectedIndex = 2;
             else if (checkedId == practiceBinding.option4.getId()) selectedIndex = 3;
 
-            if (selectedIndex == correctAnswers[currentQuestionIndex]) {
-                score++;
-                Toast.makeText(this, "Correct Answer! Well done!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Wrong Answer. The correct was: " + options[currentQuestionIndex][correctAnswers[currentQuestionIndex]], Toast.LENGTH_SHORT).show();
+            // Disable options after selection
+            for (int i = 0; i < practiceBinding.optionsGroup.getChildCount(); i++) {
+                practiceBinding.optionsGroup.getChildAt(i).setEnabled(false);
             }
 
-            currentQuestionIndex++;
-            loadQuestion();
+            int correctIndex = correctAnswers[currentQuestionIndex];
+            
+            if (selectedIndex == correctIndex) {
+                score++;
+                selectedOption.setBackgroundResource(R.drawable.option_correct);
+                Toast.makeText(this, "Correct! ✨", Toast.LENGTH_SHORT).show();
+            } else {
+                selectedOption.setBackgroundResource(R.drawable.option_wrong);
+                // Highlight correct one
+                highlightCorrectAnswer(correctIndex);
+                Toast.makeText(this, "Wrong Answer ❌", Toast.LENGTH_SHORT).show();
+            }
+
+            practiceBinding.checkAnswerBtn.setText("Next Question");
         });
+    }
+
+    private void highlightCorrectAnswer(int index) {
+        if (index == 0) practiceBinding.option1.setBackgroundResource(R.drawable.option_correct);
+        else if (index == 1) practiceBinding.option2.setBackgroundResource(R.drawable.option_correct);
+        else if (index == 2) practiceBinding.option3.setBackgroundResource(R.drawable.option_correct);
+        else if (index == 3) practiceBinding.option4.setBackgroundResource(R.drawable.option_correct);
     }
 
     private void updateProgressUI() {

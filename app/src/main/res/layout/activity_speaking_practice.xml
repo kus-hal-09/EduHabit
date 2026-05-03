@@ -4,297 +4,165 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F9FAFB"
-    android:fitsSystemWindows="true"
-    tools:context=".SpeakingPracticeActivity">
+    android:background="#F8FAFC">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+        app:elevation="0dp">
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize">
+            <ImageView
+                android:id="@+id/btnBack"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_home"
+                app:tint="#1E293B" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="Speaking AI Tutor"
+                android:textColor="#1E293B"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </com.google.android.material.appbar.MaterialToolbar>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="72dp">
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="24dp">
 
-            <!-- Professional Pink Header -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#D81B60"
-                android:orientation="vertical"
-                android:paddingHorizontal="24dp"
-                android:paddingTop="16dp"
-                android:paddingBottom="24dp">
-
-                <TextView
-                    android:id="@+id/backBtn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="← Back"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:padding="4dp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Speaking Practice"
-                    android:textColor="#FFFFFF"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Improve your pronunciation and fluency"
-                    android:textColor="#FCE7F3"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <!-- Topic Selection Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="24dp"
-                android:text="Choose a Topic"
-                android:textColor="#111827"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:text="Listen &amp; Repeat"
+                android:textColor="#64748B"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.1" />
 
-            <!-- Introduction Card -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/topic_intro"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="12dp"
                 app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="#D81B60"
-                app:strokeWidth="2dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/intro_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Introduction"
-                        android:textColor="#111827"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/intro_title"
-                        android:layout_marginTop="2dp"
-                        android:text="Tell me about yourself, your hobbies, and your goals."
-                        android:textColor="#6B7280"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:background="#F3F4F6"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="2dp"
-                        android:text="120s"
-                        android:textColor="#374151"
-                        android:textSize="10sp" />
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Daily Routine Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/topic_routine"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeColor="#E5E7EB"
-                app:strokeWidth="1dp">
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/routine_title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Daily Routine"
-                        android:textColor="#111827"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_below="@id/routine_title"
-                        android:layout_marginTop="2dp"
-                        android:text="Describe your typical day from morning to evening."
-                        android:textColor="#6B7280"
-                        android:textSize="12sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:background="#F3F4F6"
-                        android:paddingHorizontal="8dp"
-                        android:paddingVertical="2dp"
-                        android:text="90s"
-                        android:textColor="#374151"
-                        android:textSize="10sp" />
-                </RelativeLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Main Recording Area -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="20dp"
-                app:cardBackgroundColor="#FFFFFF"
-                app:cardCornerRadius="24dp"
+                app:cardCornerRadius="20dp"
                 app:cardElevation="4dp"
                 app:strokeWidth="0dp">
-
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="32dp">
-
-                    <com.google.android.material.card.MaterialCardView
-                        android:layout_width="64dp"
-                        android:layout_height="64dp"
-                        app:cardBackgroundColor="#D81B60"
-                        app:cardCornerRadius="32dp"
-                        app:cardElevation="0dp">
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_mic"
-                            app:tint="#FFFFFF" />
-                    </com.google.android.material.card.MaterialCardView>
-
+                    android:padding="24dp"
+                    android:gravity="center">
+                    
                     <TextView
-                        android:id="@+id/selectedTopicTitle"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/tvTargetSentence"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="Introduction"
-                        android:textColor="#111827"
+                        android:gravity="center"
+                        android:text="&quot;We need to leverage our core competencies.&quot;"
+                        android:textColor="#1E293B"
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/selectedTopicDesc"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center"
-                        android:text="Tell me about yourself, your hobbies, and your goals."
-                        android:textColor="#6B7280"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/timerText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
-                        android:text="0:00"
-                        android:textColor="#111827"
-                        android:textSize="40sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/recommendedDuration"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Recommended duration: 120 seconds"
-                        android:textColor="#94A3B8"
-                        android:textSize="12sp" />
-
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/recordBtn"
-                        android:layout_width="match_parent"
-                        android:layout_height="56dp"
-                        android:layout_marginTop="32dp"
-                        android:backgroundTint="#D81B60"
-                        android:text="Start Recording"
-                        android:textAllCaps="false"
-                        android:textStyle="bold"
-                        app:cornerRadius="16dp"
-                        app:icon="@android:drawable/ic_btn_speak_now" />
+                        android:id="@+id/btnListen"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="Listen to AI"
+                        app:icon="@android:drawable/ic_lock_silent_mode_off" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Speaking Tips -->
+            <Spacer android:layout_width="1dp" android:layout_height="60dp" />
+
+            <FrameLayout
+                android:layout_width="200dp"
+                android:layout_height="200dp">
+                
+                <View
+                    android:id="@+id/vPulse"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/circle_glass_bg"
+                    android:alpha="0" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fabMic"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_mic"
+                    app:fabCustomSize="80dp"
+                    app:maxImageSize="40dp"
+                    app:backgroundTint="#6366F1"
+                    app:tint="#FFFFFF"
+                    app:elevation="8dp" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Tap to start speaking"
+                android:textColor="#64748B"
+                android:textSize="14sp" />
+
+            <Spacer android:layout_width="1dp" android:layout_height="0dp" android:layout_weight="1" />
+
+            <!-- Results Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cvResults"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
-                app:cardBackgroundColor="#FFF1F2"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="0dp">
-
+                android:visibility="gone"
+                app:cardBackgroundColor="#F0FDF4"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp">
+                
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
-
+                    android:padding="20dp"
+                    android:gravity="center">
+                    
+                    <TextView
+                        android:id="@+id/tvAccuracy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="95% Accuracy"
+                        android:textColor="#16A34A"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                    
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="💡 Speaking Tips"
-                        android:textColor="#9F1239"
-                        android:textStyle="bold"
+                        android:text="Great Job! Keep it up."
+                        android:textColor="#15803D"
                         android:textSize="14sp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:lineSpacingExtra="4dp"
-                        android:text="• Speak clearly and at a natural pace\n• Take a deep breath before starting\n• Don't worry about mistakes - practice makes perfect\n• Listen to your recording to identify areas for improvement"
-                        android:textColor="#BE123C"
-                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <!-- Professional Bottom Navigation -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation"
-        android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:layout_gravity="bottom"
-        android:background="#FFFFFF"
-        app:itemIconTint="@color/bottom_nav_color"
-        app:itemTextColor="@color/bottom_nav_color"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemActiveIndicatorStyle="@null" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

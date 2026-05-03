@@ -9,11 +9,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.kushal.eduhabit.databinding.ActivityAnalyticsBinding;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AnalyticsActivity extends AppCompatActivity {
 
     private ActivityAnalyticsBinding binding;
     private FirebaseFirestore db;
+    private SessionManager session;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +25,7 @@ public class AnalyticsActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         db = FirebaseFirestore.getInstance();
+        session = new SessionManager(this);
 
         binding.backBtn.setOnClickListener(v -> finish());
 
@@ -55,10 +59,18 @@ public class AnalyticsActivity extends AppCompatActivity {
     }
 
     private void fetchAnalyticsData() {
-        // 1. Fetch Students Count
+        String currentTeacherId = session.getUid();
+        
+        // 1. Fetch Students Count (Filter out the current user)
         db.collection("users").whereEqualTo("role", "student").get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    binding.studentsCountText.setText(String.valueOf(queryDocumentSnapshots.size()));
+                    int count = 0;
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        if (!doc.getId().equals(currentTeacherId)) {
+                            count++;
+                        }
+                    }
+                    binding.studentsCountText.setText(String.valueOf(count));
                 });
 
         // 2. Fetch and Aggregate Graded Submissions
@@ -68,18 +80,17 @@ public class AnalyticsActivity extends AppCompatActivity {
 
                     int totalGrade = 0;
                     int gradedCount = 0;
-                    int excellent = 0, good = 0, fair = 0;
+                    int totalSubmissions = queryDocumentSnapshots.size();
 
                     for (DocumentSnapshot doc : queryDocumentSnapshots) {
                         if ("graded".equals(doc.getString("status"))) {
                             try {
-                                int grade = Integer.parseInt(doc.getString("grade").replaceAll("[^0-9]", ""));
-                                totalGrade += grade;
-                                gradedCount++;
-
-                                if (grade >= 90) excellent++;
-                                else if (grade >= 75) good++;
-                                else if (grade >= 60) fair++;
+                                String gradeStr = doc.getString("grade");
+                                if (gradeStr != null) {
+                                    int grade = Integer.parseInt(gradeStr.replaceAll("[^0-9]", ""));
+                                    totalGrade += grade;
+                                    gradedCount++;
+                                }
                             } catch (Exception ignored) {}
                         }
                     }
@@ -87,10 +98,7 @@ public class AnalyticsActivity extends AppCompatActivity {
                     if (gradedCount > 0) {
                         int avg = totalGrade / gradedCount;
                         binding.avgGradeText.setText(avg + "%");
-                        binding.completionText.setText(((gradedCount * 100) / queryDocumentSnapshots.size()) + "%");
-                        
-                        // Update Progress Bars (Mocking max 10 for visual)
-                        // In real app, calculate % based on total students
+                        binding.completionText.setText(((gradedCount * 100) / totalSubmissions) + "%");
                     }
                 });
     }

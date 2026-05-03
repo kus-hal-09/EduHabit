@@ -205,11 +205,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="12dp"
                 android:text="Logout"
                 android:textColor="#EF4444"
                 app:strokeColor="#EF4444"
                 app:cornerRadius="12dp" />
+
+            <!-- DELETE ACCOUNT Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteAccount"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="32dp"
+                android:text="Delete Account Permanently"
+                android:textColor="#B91C1C"
+                android:textAllCaps="false"
+                android:textSize="13sp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

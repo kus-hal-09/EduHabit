@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- Lesson State Icon -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp">
+            
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivLessonIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#F1F5F9"
+                android:padding="12dp"
+                android:src="@drawable/ic_book"
+                app:shapeAppearanceOverlay="@style/CircleImage"
+                app:tint="#4F46E5" />
+
+            <ImageView
+                android:id="@+id/ivStateBadge"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="bottom|end"
+                android:src="@android:drawable/checkbox_on_background"
+                app:tint="#10B981"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvLessonTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Introduction"
+                android:textColor="#1E293B"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvLessonDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="4m 30s"
+                android:textColor="#64748B"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Progress Indicator -->
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/lessonProgress"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:progress="0"
+            app:indicatorColor="#4F46E5"
+            app:indicatorSize="24dp"
+            app:trackColor="#F1F5F9"
+            app:trackThickness="3dp" />
+
+        <ImageView
+            android:id="@+id/ivLock"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/ic_lock_idle_lock"
+            app:tint="#94A3B8"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

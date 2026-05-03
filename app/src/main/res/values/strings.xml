@@ -1,3 +1,44 @@
 <resources>
     <string name="app_name">EduHabit</string>
+    <string name="welcome_message">Hi, %1$s!</string>
+    <string name="default_learner">Learner</string>
+    <string name="xp_display">%1$d XP</string>
+    <string name="level_display">Level %1$d</string>
+    <string name="streak_display">%1$d Days</string>
+    <string name="pending_tasks">%1$d pending</string>
+    <string name="achievements_toast">Achievements coming soon! Track your progress here.</string>
+    
+    <!-- Subject Details -->
+    <string name="credits_format">%1$d Credits</string>
+    <string name="hours_format">%1$d Hours</string>
+    <string name="default_subject_details">Subject Details</string>
+
+    <!-- Word Match Game -->
+    <string name="word_match_title">Word Match Pro</string>
+    <string name="match_pairs_header">Match the Pairs</string>
+    <string name="match_pairs_desc">Select a word and its corresponding meaning.</string>
+    <string name="reset_game">Reset Game</string>
+    <string name="correct_match">Correct! ✨</string>
+    <string name="wrong_match">Try again! ❌</string>
+    <string name="game_complete">Master Match! +50 XP 🏆</string>
+    <string name="back_button_desc">Go Back</string>
+
+    <!-- Guess Number Game -->
+    <string name="guess_hint">Guess</string>
+
+    <!-- Vocabulary Lab -->
+    <string name="vocab_lab_title">Vocabulary Lab</string>
+    <string name="next_question">Next Question</string>
+    <string name="check_answer">Check Answer</string>
+    <string name="select_answer_toast">Please select an answer</string>
+    <string name="correct_xp_toast">Correct! +10 XP earned!</string>
+    <string name="module_complete_title">Module Complete! 🏆</string>
+    <string name="module_complete_msg">%1$d / %2$d XP Earned</string>
+    <string name="finish_btn">Finish</string>
+    <string name="pick_synonym_hint">Pick the correct synonym...</string>
+    <string name="loading_module">Loading %1$s...</string>
+    <string name="preparing_words">Preparing %1$d words for %2$s level.</string>
+    <string name="practice_again">Practice Again</string>
+    <string name="back_to_dashboard">Back to Dashboard</string>
+    <string name="xp_earned_popup">+10 XP!</string>
 </resources>

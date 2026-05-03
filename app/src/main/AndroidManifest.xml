@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,7 +16,7 @@
         android:theme="@style/Theme.EduHabit">
         
         <activity
-            android:name=".MainActivity"
+            android:name=".WelcomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,13 +24,26 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".MainActivity" android:exported="false" />
         <activity android:name=".LoginActivity" android:exported="false" />
         <activity android:name=".SignupActivity" android:exported="false" />
         <activity android:name=".StudentDashboardActivity" android:exported="false" />
         <activity android:name=".TeacherDashboardActivity" android:exported="false" />
-        <activity android:name=".GrammarPracticeActivity" android:exported="false" />
+        
+        <!-- Overhauled Vocabulary Hub (Point of Consolidation) -->
         <activity android:name=".VocabularyPracticeActivity" android:exported="false" />
+        
+        <!-- Other Modules -->
+        <activity android:name=".GrammarActivity" android:exported="false" />
+        <activity android:name=".GrammarLearningActivity" android:exported="false" />
+        <activity android:name=".GrammarLessonActivity" android:exported="false" />
+        <activity android:name=".PracticeExerciseActivity" android:exported="false" />
         <activity android:name=".SpeakingPracticeActivity" android:exported="false" />
+        <activity android:name=".AchievementsActivity" android:exported="false" />
+        <activity android:name=".WordMatchGameActivity" android:exported="false" />
+        <activity android:name=".GuessNumberGameActivity" android:exported="false" />
+        
+        <!-- Keep only essential legacy activities -->
         <activity android:name=".AssignmentListActivity" android:exported="false" />
         <activity android:name=".SubmitAssignmentActivity" android:exported="false" />
         <activity android:name=".SubmissionsListActivity" android:exported="false" />
@@ -36,6 +52,13 @@
         <activity android:name=".CreateAssignmentActivity" android:exported="false" />
         <activity android:name=".StudentsListActivity" android:exported="false" />
         <activity android:name=".AnalyticsActivity" android:exported="false" />
+        <activity android:name=".CoursePlayerActivity" android:exported="false" />
+        <activity android:name=".SubjectDetailActivity" android:exported="false" />
+        <activity android:name=".CoursePracticeActivity" android:exported="false" />
+        <activity android:name=".BusinessEnglishPracticeActivity" android:exported="false" />
+        <activity android:name=".PronunciationPracticeActivity" android:exported="false" />
+        <activity android:name=".IELTSPreparationActivity" android:exported="false" />
+        <activity android:name=".WritingMasterActivity" android:exported="false" />
             
     </application>
 

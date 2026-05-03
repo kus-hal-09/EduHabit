@@ -1,20 +1,27 @@
 package com.kushal.eduhabit;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import com.kushal.eduhabit.databinding.ActivitySpeakingPracticeBinding;
+import java.util.ArrayList;
+import java.util.Locale;
 
 public class SpeakingPracticeActivity extends AppCompatActivity {
 
     private ActivitySpeakingPracticeBinding binding;
-    private boolean isRecording = false;
-    private int seconds = 0;
-    private Handler handler = new Handler();
-    private Runnable timerRunnable;
+    private TextToSpeech tts;
+    private SpeechRecognizer speechRecognizer;
+    private String targetSentence = "We need to leverage our core competencies.";
+    private boolean isListening = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,70 +29,119 @@ public class SpeakingPracticeActivity extends AppCompatActivity {
         binding = ActivitySpeakingPracticeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.backBtn.setOnClickListener(v -> finish());
+        binding.btnBack.setOnClickListener(v -> finish());
+        binding.tvTargetSentence.setText("\"" + targetSentence + "\"");
 
-        // Topic Selection Logic
-        binding.topicIntro.setOnClickListener(v -> selectTopic("Introduction", "Tell me about yourself, your hobbies, and your goals.", 120));
-        binding.topicRoutine.setOnClickListener(v -> selectTopic("Daily Routine", "Describe your typical day from morning to evening.", 90));
-        
-        // Recording Logic
-        binding.recordBtn.setOnClickListener(v -> {
-            if (!isRecording) {
-                startRecording();
+        setupTTS();
+        setupSTT();
+
+        binding.btnListen.setOnClickListener(v -> {
+            if (tts != null) {
+                tts.speak(targetSentence, TextToSpeech.QUEUE_FLUSH, null, null);
+            }
+        });
+
+        binding.fabMic.setOnClickListener(v -> {
+            if (!isListening) {
+                startListening();
             } else {
-                stopRecording();
+                stopListening();
             }
         });
     }
 
-    private void selectTopic(String title, String desc, int duration) {
-        binding.selectedTopicTitle.setText(title);
-        binding.selectedTopicDesc.setText(desc);
-        binding.recommendedDuration.setText("Recommended duration: " + duration + " seconds");
-        stopRecording(); // Reset timer if switching topics
-        seconds = 0;
-        binding.timerText.setText("0:00");
-        
-        // Visual feedback for selection
-        int grayColor = ContextCompat.getColor(this, android.R.color.darker_gray);
-        int pinkColor = 0xFFD81B60; // Matching the theme color
-        
-        binding.topicIntro.setStrokeColor(grayColor);
-        binding.topicRoutine.setStrokeColor(grayColor);
-        
-        if (title.equals("Introduction")) {
-            binding.topicIntro.setStrokeColor(pinkColor);
-        } else {
-            binding.topicRoutine.setStrokeColor(pinkColor);
-        }
+    private void setupTTS() {
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) tts.setLanguage(Locale.US);
+        });
     }
 
-    private void startRecording() {
-        isRecording = true;
-        binding.recordBtn.setText("Stop Recording");
-        binding.recordBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFEF4444)); // Red
-        
-        seconds = 0;
-        timerRunnable = new Runnable() {
+    private void setupSTT() {
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        speechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
-            public void run() {
-                seconds++;
-                int mins = seconds / 60;
-                int secs = seconds % 60;
-                binding.timerText.setText(String.format("%d:%02d", mins, secs));
-                handler.postDelayed(this, 1000);
+            public void onResults(Bundle results) {
+                ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                if (matches != null && !matches.isEmpty()) {
+                    processSpeech(matches.get(0));
+                }
+                stopListening();
             }
-        };
-        handler.postDelayed(timerRunnable, 1000);
-        Toast.makeText(this, "Recording started...", Toast.LENGTH_SHORT).show();
+
+            @Override public void onReadyForSpeech(Bundle params) { binding.tvStatus.setText("Listening..."); }
+            @Override public void onBeginningOfSpeech() {}
+            @Override public void onRmsChanged(float rmsdB) {}
+            @Override public void onBufferReceived(byte[] buffer) {}
+            @Override public void onEndOfSpeech() {}
+            @Override public void onError(int error) { 
+                stopListening();
+                Toast.makeText(SpeakingPracticeActivity.this, "Speech recognition error", Toast.LENGTH_SHORT).show();
+            }
+            @Override public void onPartialResults(Bundle partialResults) {}
+            @Override public void onEvent(int eventType, Bundle params) {}
+        });
     }
 
-    private void stopRecording() {
-        if (!isRecording) return;
-        isRecording = false;
-        binding.recordBtn.setText("Start Recording");
-        binding.recordBtn.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFD81B60)); // Original Pink
-        handler.removeCallbacks(timerRunnable);
-        Toast.makeText(this, "Recording saved! Analyzing fluency...", Toast.LENGTH_LONG).show();
+    private void startListening() {
+        isListening = true;
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        speechRecognizer.startListening(intent);
+        
+        // Start pulse animation manually since Lottie file is missing
+        startPulse();
+    }
+
+    private void stopListening() {
+        isListening = false;
+        speechRecognizer.stopListening();
+        binding.tvStatus.setText("Tap to start speaking");
+        stopPulse();
+    }
+
+    private void startPulse() {
+        AlphaAnimation pulse = new AlphaAnimation(0f, 0.5f);
+        pulse.setDuration(800);
+        pulse.setRepeatMode(Animation.REVERSE);
+        pulse.setRepeatCount(Animation.INFINITE);
+        binding.vPulse.startAnimation(pulse);
+        binding.vPulse.setVisibility(View.VISIBLE);
+    }
+
+    private void stopPulse() {
+        binding.vPulse.clearAnimation();
+        binding.vPulse.setVisibility(View.GONE);
+    }
+
+    private void processSpeech(String spokenText) {
+        binding.cvResults.setVisibility(View.VISIBLE);
+        float accuracy = calculateAccuracy(targetSentence, spokenText);
+        binding.tvAccuracy.setText(String.format(Locale.US, "%.0f%% Accuracy", accuracy * 100));
+    }
+
+    private float calculateAccuracy(String target, String spoken) {
+        String t = target.toLowerCase().replaceAll("[^a-zA-Z ]", "");
+        String s = spoken.toLowerCase().replaceAll("[^a-zA-Z ]", "");
+        String[] targetWords = t.split("\\s+");
+        String[] spokenWords = s.split("\\s+");
+        
+        int correct = 0;
+        for (String sw : spokenWords) {
+            for (String tw : targetWords) {
+                if (sw.equals(tw)) {
+                    correct++;
+                    break;
+                }
+            }
+        }
+        return Math.min(1.0f, (float) correct / targetWords.length);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null) { tts.stop(); tts.shutdown(); }
+        if (speechRecognizer != null) speechRecognizer.destroy();
+        super.onDestroy();
     }
 }

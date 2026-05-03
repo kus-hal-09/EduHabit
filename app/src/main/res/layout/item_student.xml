@@ -30,6 +30,7 @@
                 android:textSize="16sp" />
 
             <TextView
+                android:id="@+id/statusBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@id/studentName"
@@ -43,11 +44,11 @@
                 android:textStyle="bold"/>
 
             <TextView
-                android:id="@+id/gradeLevel"
+                android:id="@+id/levelBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
-                android:text="Excellent"
+                android:text="New"
                 android:textColor="#166534"
                 android:background="#F0FDF4"
                 android:paddingHorizontal="8dp"
