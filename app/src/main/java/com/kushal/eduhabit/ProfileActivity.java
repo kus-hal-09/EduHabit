@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -26,6 +29,18 @@ public class ProfileActivity extends AppCompatActivity {
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Fix overlapping with status bar - Using correct ID: profileHeader
+        ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.profileHeader.setPadding(
+                binding.profileHeader.getPaddingLeft(),
+                systemBars.top,
+                binding.profileHeader.getPaddingRight(),
+                binding.profileHeader.getPaddingBottom()
+            );
+            return insets;
+        });
+
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         session = new SessionManager(this);
@@ -33,11 +48,8 @@ public class ProfileActivity extends AppCompatActivity {
         binding.backBtn.setOnClickListener(v -> finish());
 
         binding.logoutBtn.setOnClickListener(v -> showLogoutConfirmation());
-
-        // ADDED: Delete Account Listener
         binding.btnDeleteAccount.setOnClickListener(v -> showDeleteConfirmation());
-
-        binding.saveBtn.setOnClickListener(v -> saveProfileChanges());
+        binding.saveBtn.se ickListener(v -> saveProfileChanges());
 
         setupBottomNav();
         fetchUserData();
@@ -65,7 +77,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void showDeleteConfirmation() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Account")
-                .setMessage("Are you absolutely sure? This will delete all your data and assignments permanently.")
+                .setMessage("Are you absolutely sure? This will delete all your data permanently.")
                 .setPositiveButton("Delete", (dialog, which) -> deleteUserAccount())
                 .setNegativeButton("Cancel", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
@@ -76,9 +88,7 @@ public class ProfileActivity extends AppCompatActivity {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
 
-        String uid = user.getUid();
-
-        db.collection("users").document(uid).delete()
+        db.collection("users").document(user.getUid()).delete()
             .addOnSuccessListener(aVoid -> {
                 user.delete().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -120,18 +130,17 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void fetchUserData() {
-        if (mAuth.getCurrentUser() == null) return;
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
         
-        String userId = mAuth.getCurrentUser().getUid();
-        String userEmail = mAuth.getCurrentUser().getEmail();
-        
+        String userEmail = user.getEmail();
         binding.profileHeaderEmail.setText(userEmail);
         binding.editEmail.setText(userEmail);
 
-        db.collection("users").document(userId).get()
-            .addOnSuccessListener(documentSnapshot -> {
-                if (documentSnapshot.exists()) {
-                    String name = documentSnapshot.getString("name");
+        db.collection("users").document(user.getUid()).get()
+            .addOnSuccessListener(doc -> {
+                if (doc.exists()) {
+                    String name = doc.getString("name");
                     binding.profileHeaderName.setText(name);
                     binding.editName.setText(name);
                 }
@@ -140,32 +149,30 @@ public class ProfileActivity extends AppCompatActivity {
 
     private void fetchTeacherStats() {
         db.collection("users").whereEqualTo("role", "student").get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    binding.statTotalStudentsProfile.setText(String.valueOf(queryDocumentSnapshots.size()));
-                });
+                .addOnSuccessListener(snap -> binding.statTotalStudentsProfile.setText(String.valueOf(snap.size())));
 
         db.collection("assignments").get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    binding.statTotalAssignmentsProfile.setText(String.valueOf(queryDocumentSnapshots.size()));
-                });
+                .addOnSuccessListener(snap -> binding.statTotalAssignmentsProfile.setText(String.valueOf(snap.size())));
     }
 
     private void saveProfileChanges() {
+        if (binding.editName.getText() == null) return;
         String newName = binding.editName.getText().toString().trim();
-        
         if (newName.isEmpty()) {
             Toast.makeText(this, "Name cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String userId = mAuth.getCurrentUser().getUid();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", newName);
 
-        db.collection("users").document(userId)
+        db.collection("users").document(user.getUid())
                 .set(updates, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(ProfileActivity.this, "Profile Updated Successfully", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Profile Updated Successfully", Toast.LENGTH_SHORT).show();
                     binding.profileHeaderName.setText(newName);
                 });
     }

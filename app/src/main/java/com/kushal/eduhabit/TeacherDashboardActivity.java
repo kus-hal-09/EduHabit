@@ -8,6 +8,9 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
@@ -18,7 +21,6 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -27,9 +29,12 @@ import com.google.firebase.firestore.Query;
 import com.kushal.eduhabit.databinding.ActivityTeacherDashboardBinding;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TeacherDashboardActivity extends AppCompatActivity {
 
@@ -40,6 +45,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     private ActivityAdapter activityAdapter;
     private List<DocumentSnapshot> activityList = new ArrayList<>();
     private List<ListenerRegistration> listeners = new ArrayList<>();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +53,17 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         binding = ActivityTeacherDashboardBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Handle system bars overlap
+        ViewCompat.setOnApplyWindowInsetsListener(binding.mainContent, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            binding.appBar.setPadding(0, systemBars.top, 0, 0);
+            return insets;
+        });
+
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         session = new SessionManager(this);
 
-        // Animation for the professional SaaS look
         Animation fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         binding.mainContent.startAnimation(fadeIn);
 
@@ -65,11 +77,13 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         String name = session.getName();
         binding.tvTeacherName.setText(name.isEmpty() ? "Educator" : name);
         
-        // Initials Logic for the circular avatar
         if (!name.isEmpty()) {
             String initials = name.substring(0, 1).toUpperCase();
             if (name.contains(" ")) {
-                initials += name.substring(name.indexOf(" ") + 1, name.indexOf(" ") + 2).toUpperCase();
+                int nextSpace = name.indexOf(" ");
+                if (nextSpace + 1 < name.length()) {
+                    initials += name.substring(nextSpace + 1, nextSpace + 2).toUpperCase();
+                }
             }
             binding.tvTeacherInitials.setText(initials);
         }
@@ -125,9 +139,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     }
 
     private void logout() {
-        // Clear listeners BEFORE signing out to avoid "Permission Denied" errors
         removeListeners();
-        
         mAuth.signOut();
         session.clearSession();
         Intent intent = new Intent(this, WelcomeActivity.class);
@@ -147,6 +159,7 @@ public class TeacherDashboardActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         removeListeners();
+        executorService.shutdown();
     }
 
     private void fetchRealTimeStats() {
@@ -154,41 +167,31 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         String semester = session.getSemester();
         String teacherId = session.getUid();
 
-        // Count students in same faculty (Excluding current user just in case)
+        // Query 1: Students count
         listeners.add(db.collection("users")
                 .whereEqualTo("role", "student")
                 .whereEqualTo("course", course)
                 .whereEqualTo("semester", semester)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) return; // Ignore errors after logout
-                    if (snap != null) {
-                        int studentCount = 0;
-                        for (DocumentSnapshot doc : snap.getDocuments()) {
-                            if (!doc.getId().equals(teacherId)) {
-                                studentCount++;
-                            }
-                        }
-                        binding.tvStatStudents.setText(String.valueOf(studentCount));
-                    }
+                    if (e != null || snap == null) return;
+                    binding.tvStatStudents.setText(String.valueOf(snap.size()));
                 }));
 
-        // Count teacher's assignments
+        // Query 2: Teacher's assignments
         listeners.add(db.collection("assignments")
                 .whereEqualTo("teacherId", teacherId)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) return;
-                    if (snap != null) binding.tvStatAssignments.setText(String.valueOf(snap.size()));
+                    if (e != null || snap == null) return;
+                    binding.tvStatAssignments.setText(String.valueOf(snap.size()));
                 }));
 
-        // Sync analytical charts
+        // Query 3: Submissions analytics
         listeners.add(db.collection("submissions")
                 .whereEqualTo("course", course)
                 .whereEqualTo("semester", semester)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) return;
-                    if (snap != null) {
-                        aggregateAnalytics(snap.getDocuments());
-                    }
+                    if (e != null || snap == null) return;
+                    executorService.execute(() -> aggregateAnalytics(snap.getDocuments()));
                 }));
     }
 
@@ -202,8 +205,8 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         for (int i = 0; i < submissions.size(); i++) {
             DocumentSnapshot doc = submissions.get(i);
             String status = doc.getString("status");
-            if ("pending".equals(status) || "submitted".equals(status)) pending++;
-            else if ("graded".equals(status)) graded++;
+            if ("graded".equals(status)) graded++;
+            else pending++;
 
             Object tsObj = doc.get("submittedAt");
             if (tsObj instanceof com.google.firebase.Timestamp) {
@@ -211,19 +214,30 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 cal.setTime(((com.google.firebase.Timestamp)tsObj).toDate());
                 int month = cal.get(Calendar.MONTH);
                 monthlyData.put(month, monthlyData.getOrDefault(month, 0) + 1);
-                trendEntries.add(new Entry(i, i + 1));
             }
         }
-
-        binding.tvStatPending.setText(String.valueOf(pending));
-        if (total > 0) {
-            int perf = (graded * 100) / total;
-            binding.tvStatGrade.setText(perf + "%");
+        
+        for (int i = 0; i < Math.min(10, submissions.size()); i++) {
+            trendEntries.add(new Entry(i, i + 1));
         }
 
-        setupDonutChart(pending, graded);
-        setupBarChart(monthlyData);
-        setupLineChart(trendEntries);
+        final int finalPending = pending;
+        final int finalGraded = graded;
+        final int finalTotal = total;
+        
+        runOnUiThread(() -> {
+            binding.tvStatPending.setText(String.valueOf(finalPending));
+            if (finalTotal > 0) {
+                int perf = (finalGraded * 100) / finalTotal;
+                binding.tvStatGrade.setText(perf + "%");
+            } else {
+                binding.tvStatGrade.setText("0%");
+            }
+
+            setupDonutChart(finalPending, finalGraded);
+            setupBarChart(monthlyData);
+            setupLineChart(trendEntries);
+        });
     }
 
     private void setupDonutChart(int pending, int graded) {
@@ -231,8 +245,10 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         if (pending > 0) entries.add(new PieEntry(pending, "Pending"));
         if (graded > 0) entries.add(new PieEntry(graded, "Graded"));
 
+        if (entries.isEmpty()) entries.add(new PieEntry(1, "No Data"));
+
         PieDataSet set = new PieDataSet(entries, "");
-        set.setColors(new int[]{Color.parseColor("#F59E0B"), Color.parseColor("#10B981")});
+        set.setColors(new int[]{Color.parseColor("#F59E0B"), Color.parseColor("#10B981"), Color.parseColor("#E2E8F0")});
         set.setValueTextColor(Color.WHITE);
         set.setValueTextSize(12f);
 
@@ -240,11 +256,9 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         binding.pieChart.setDrawHoleEnabled(true);
         binding.pieChart.setHoleRadius(65f);
         binding.pieChart.setCenterText("Overview");
-        binding.pieChart.setCenterTextSize(14f);
         binding.pieChart.setCenterTextColor(Color.parseColor("#64748B"));
         binding.pieChart.getDescription().setEnabled(false);
         binding.pieChart.getLegend().setEnabled(false);
-        binding.pieChart.animateXY(800, 800);
         binding.pieChart.invalidate();
     }
 
@@ -258,35 +272,45 @@ public class TeacherDashboardActivity extends AppCompatActivity {
         binding.barChart.setData(new BarData(set));
         binding.barChart.getDescription().setEnabled(false);
         binding.barChart.getXAxis().setDrawGridLines(false);
-        binding.barChart.animateY(1000);
         binding.barChart.invalidate();
     }
 
     private void setupLineChart(List<Entry> entries) {
-        LineDataSet set = new LineDataSet(entries, "Growth Trend");
+        LineDataSet set = new LineDataSet(entries, "Activity");
         set.setColor(Color.parseColor("#8B5CF6"));
         set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         set.setDrawFilled(true);
         set.setFillColor(Color.parseColor("#F5F3FF"));
         binding.lineChart.setData(new LineData(set));
         binding.lineChart.getDescription().setEnabled(false);
-        binding.lineChart.animateX(1000);
         binding.lineChart.invalidate();
     }
 
     private void fetchActivityFeed() {
+        // Optimization: Remove orderBy from Firestore to avoid index requirement
         listeners.add(db.collection("submissions")
                 .whereEqualTo("course", session.getCourse())
                 .whereEqualTo("semester", session.getSemester())
-                .orderBy("submittedAt", Query.Direction.DESCENDING)
-                .limit(10)
+                .limit(20)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) return;
-                    if (snap != null) {
-                        activityList.clear();
-                        activityList.addAll(snap.getDocuments());
-                        activityAdapter.notifyDataSetChanged();
+                    if (e != null || snap == null) return;
+                    
+                    List<DocumentSnapshot> docs = new ArrayList<>(snap.getDocuments());
+                    // Sort locally
+                    Collections.sort(docs, (d1, d2) -> {
+                        Object t1 = d1.get("submittedAt");
+                        Object t2 = d2.get("submittedAt");
+                        if (t1 instanceof com.google.firebase.Timestamp && t2 instanceof com.google.firebase.Timestamp) {
+                            return ((com.google.firebase.Timestamp) t2).compareTo((com.google.firebase.Timestamp) t1);
+                        }
+                        return 0;
+                    });
+
+                    activityList.clear();
+                    for (int i = 0; i < Math.min(10, docs.size()); i++) {
+                        activityList.add(docs.get(i));
                     }
+                    activityAdapter.notifyDataSetChanged();
                 }));
     }
 
@@ -296,16 +320,10 @@ public class TeacherDashboardActivity extends AppCompatActivity {
                 .whereEqualTo("teacherId", uid)
                 .whereEqualTo("read", false)
                 .addSnapshotListener((snap, e) -> {
-                    if (e != null) return;
-                    if (snap != null) {
-                        int count = snap.size();
-                        if (count > 0) {
-                            binding.tvNotifBadge.setVisibility(View.VISIBLE);
-                            binding.tvNotifBadge.setText(String.valueOf(count));
-                        } else {
-                            binding.tvNotifBadge.setVisibility(View.GONE);
-                        }
-                    }
+                    if (e != null || snap == null) return;
+                    int count = snap.size();
+                    binding.tvNotifBadge.setVisibility(count > 0 ? View.VISIBLE : View.GONE);
+                    binding.tvNotifBadge.setText(String.valueOf(count));
                 }));
     }
 }

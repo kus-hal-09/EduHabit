@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -157,7 +158,8 @@ public class SubmitAssignmentActivity extends AppCompatActivity {
         if (fileUrl != null) {
             submission.put("attachmentUrl", fileUrl);
         }
-        submission.put("submittedAt", System.currentTimeMillis());
+        // Fixed: Use com.google.firebase.Timestamp instead of Long to match the Submission model
+        submission.put("submittedAt", Timestamp.now()); 
         submission.put("status", "submitted");
 
         if (submissionId == null) {
@@ -202,7 +204,7 @@ public class SubmitAssignmentActivity extends AppCompatActivity {
         notification.put("studentEmail", studentEmail);
         notification.put("title", "New Submission");
         notification.put("message", studentEmail + " submitted " + (title != null ? title : "an assignment"));
-        notification.put("timestamp", System.currentTimeMillis());
+        notification.put("timestamp", Timestamp.now());
         notification.put("read", false);
         notification.put("course", session.getCourse());
         notification.put("semester", session.getSemester());

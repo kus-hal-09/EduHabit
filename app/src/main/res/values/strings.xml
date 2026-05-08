@@ -12,6 +12,19 @@
     <string name="credits_format">%1$d Credits</string>
     <string name="hours_format">%1$d Hours</string>
     <string name="default_subject_details">Subject Details</string>
+    <string name="prerequisites_format">Prerequisites: %1$s</string>
+    <string name="course_overview_header">Course Overview</string>
+    <string name="subject_syllabus_header">Subject Syllabus</string>
+    <string name="weightage_hours_format">Weightage: %1$d Marks | Hours: %2$d</string>
+    <string name="topics_format">Topics: %1$s</string>
+    <string name="notes_label">Notes:</string>
+    <string name="board_questions_label">Board Questions:</string>
+    <string name="generating_pdf_toast">Generating PDF...</string>
+    <string name="pdf_export_success">Syllabus exported successfully!</string>
+    <string name="pdf_export_failed">Failed to export PDF</string>
+    <string name="course_code_format">Course Code: %1$s</string>
+    <string name="syllabus_title_format">%1$s Syllabus</string>
+    <string name="type_format">Type: %1$s</string>
 
     <!-- Word Match Game -->
     <string name="word_match_title">Word Match Pro</string>

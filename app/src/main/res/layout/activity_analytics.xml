@@ -17,8 +17,10 @@
 
             <!-- Pink Header -->
             <RelativeLayout
+                android:id="@+id/analyticsHeader"
                 android:layout_width="match_parent"
-                android:layout_height="120dp"
+                android:layout_height="wrap_content"
+                android:minHeight="120dp"
                 android:background="#DB2777"
                 android:padding="20dp">
 

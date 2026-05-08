@@ -6,6 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.kushal.eduhabit.databinding.ActivityAnalyticsBinding;
@@ -23,6 +26,13 @@ public class AnalyticsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityAnalyticsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Fix overlapping with status bar
+        ViewCompat.setOnApplyWindowInsetsListener(binding.analyticsHeader, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), systemBars.top, v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
+        });
 
         db = FirebaseFirestore.getInstance();
         session = new SessionManager(this);
